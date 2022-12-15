@@ -10,7 +10,7 @@ switch($message[0]){ //смотрим первое слово сообщения
 	case '.test':
 	
 		$vk->send($peer, 'Бот работает!!!', $token); //отвечаем что все чики пуки
-        break;
+		break;
 		
 	case '.upload':
 	
@@ -26,10 +26,10 @@ switch($message[0]){ //смотрим первое слово сообщения
 		
 	case '.link':
 	
-        if (!empty($object->attachments)) //если к сообщению прикрепленна картинка
+		if (!empty($object->attachments)) //если к сообщению прикрепленна картинка
 			$vk->send($peer, end($object->attachments[0]->photo->sizes)->url, $token); //отправляем прямую ссылку на картинку
 			
-        break;
+		break;
 
 }
 
