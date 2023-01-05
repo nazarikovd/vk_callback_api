@@ -97,6 +97,15 @@ public function getUploadServer($peer, $token)
         $a = static::get('https://api.vk.com/method/photos.getMessagesUploadServer?'.http_build_query($params));
 		return json_decode($a);
 		}
+public function getDocsUploadServer($token)
+{
+		$params['group_id'] = Config::GROUP_ID;
+		$params['access_token'] = $token;
+		$params['v'] = '5.100';
+        $a = static::get('https://api.vk.com/method/docs.getWallUploadServer?'.http_build_query($params));
+		return json_decode($a);
+		}
+
 public function savePhoto($photo, $server, $hash, $token)
     {
 		$params['photo'] = $photo;
@@ -109,6 +118,18 @@ public function savePhoto($photo, $server, $hash, $token)
 		return json_decode($a);
 		
     }
+public function saveDocs($file, $title, $token)
+    {
+		$params['file'] = $file;
+		$params['title'] = $title;
+		
+		$params['access_token'] = $token;
+		$params['v'] = '5.100';
+        $a = static::get('https://api.vk.com/method/docs.save?'.http_build_query($params));
+		return json_decode($a);
+		
+    }
+
 public function uploadFile($server, $path)
     {
         $ch = curl_init($server);
@@ -118,9 +139,9 @@ public function uploadFile($server, $path)
         curl_setopt($ch, CURLOPT_POST, true);
 
         if (class_exists('\CURLFile')) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, ['file1' => new \CURLFile($path)]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, ['file' => new \CURLFile($path)]);
         } else {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, ['file1' => "@$path"]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, ['file' => "@$path"]);
         }
 
         $output = curl_exec($ch);
@@ -136,6 +157,20 @@ public function uploadPhoto($path, $peer, $token)
 	$photo = $save->response[0]->id;
 	return 'photo'.$owner.'_'.$photo;
 	
+
+}
+public function uploadDocs($path, $token)
+{
+	$server = static::getDocsUploadServer($token);
+	$upload = json_decode(static::uploadFile($server->response->upload_url, $path))->file;
+	$save = static::saveDocs($upload, 'test', $token);
+	//$owner = $save->response[0]->owner_id;
+	//$photo = $save->response[0]->id;
+	//return 'photo'.$owner.'_'.$photo;
+	$owner = $save->response->doc->owner_id;
+	$photo = $save->response->doc->id;
+	
+	return 'doc'.$owner.'_'.$photo;
 
 }
 function compressImage($source_url, $quality) {
@@ -203,47 +238,14 @@ return json_encode($keyb);
 }
 
 public function easyMessage($message){
-	
 $message = explode(' ', $message);
-if (strpos($message[0], '[') !== false && strpos($message[0], '|') !== false)
+if (strpos($message[0], '[club'.Config::GROUP_ID) !== false && strpos($message[0], '|') !== false)
     {
         unset($message[0]);
         $message = array_values($message);
     }
     $message[0] = mb_convert_case($message[0], MB_CASE_LOWER, "UTF-8");
 	return $message;
-}
-
-function reg($id){
-$xml = file_get_contents('https://vk.com/foaf.php?id='.$id);
-if(strpos($xml, 'banned') !== false){
-	$result = array(
-'date' => 'Пользователь заблокирован или удален',
-'diff' => 0
-);
-return (object) $result;
-}
-$xml = preg_replace_callback_array(array(
-			'~&(?:#\d+;?)?~' => function($match){ htmlspecialchars($match[0]); },
-			'~(?:ya|foaf|img|dc|rdf|):~' => function(){}
-		), $xml);
-
-$xml = simplexml_load_string($xml);
-$xml = json_encode($xml);
-$xml = str_replace('@attributes', 'data', $xml);
-$xml = json_decode($xml);
-$res = $xml->Person->created->data->date;
-
-$date = substr($res, 0, 10).' '.$time = substr($res, 11, 6);
-$date2 = strtotime(substr($res, 0, 10));
-$now = time();
-$datediff = $now - $date2;
-$result = array(
-'date' => date("d.m.Y, H:i", strtotime($date)),
-'diff' => round($datediff / (60 * 60 * 24))
-);
-
-return (object) $result;
 }
 }
 
