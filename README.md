@@ -8,7 +8,7 @@
 1) Править конфиг: 
 [callback/Config.php](https://github.com/nazarikovd/vk_callback_api/blob/main/callback/Config.php)
 
-2) Указать в сообществе ссылку на bot.php как CallBack сервер 
+2) Указать в сообществе ссылку на bot.php как CallBack сервер, установить версию API 5.100!!!
 
 
 Ответы на сообщения:
